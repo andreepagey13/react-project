@@ -1,0 +1,221 @@
+/* ===== Tokens ===== */
+:root {
+  --page-bg: #faf8ef;
+  --board-bg: #bbada0;
+  --cell-bg: rgba(238, 228, 218, 0.35);
+  --ink: #776e65;
+  --ink-light: #f9f6f2;
+  --accent: #8f7a66;
+  --accent-hover: #9f8a76;
+
+  --slide: 120ms;
+  --board: min(92vw, 460px);
+  --gap: calc(var(--board) / 36);
+  --cell: calc((var(--board) - var(--gap) * 5) / 4);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: "Clear Sans", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Layout ===== */
+.game {
+  width: var(--board);
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.6rem, 14vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.scores { display: flex; gap: 8px; }
+
+.score-box {
+  min-width: 78px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--board-bg);
+  color: #fff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 10px rgba(119, 110, 101, 0.2);
+}
+.score-label { font-size: 0.7rem; font-weight: 600; opacity: 0.85; }
+.score-value { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hint { margin: 0; font-size: 0.9rem; line-height: 1.35; }
+
+.btn {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--ink-light);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn:hover { background: var(--accent-hover); }
+.btn:active { transform: scale(0.96); }
+.btn:focus-visible { outline: 3px solid #f59563; outline-offset: 2px; }
+.btn-ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--accent); }
+.btn-ghost:hover { background: rgba(143, 122, 102, 0.12); }
+
+/* ===== Board ===== */
+.board {
+  position: relative;
+  width: var(--board);
+  height: var(--board);
+  padding: var(--gap);
+  border-radius: 14px;
+  background: var(--board-bg);
+  box-shadow: 0 12px 30px rgba(119, 110, 101, 0.3);
+  touch-action: none; /* let swipes control the game, not page scroll */
+  user-select: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, var(--cell));
+  grid-template-rows: repeat(4, var(--cell));
+  gap: var(--gap);
+}
+.cell { border-radius: 8px; background: var(--cell-bg); }
+
+.tiles {
+  position: absolute;
+  inset: var(--gap);
+  pointer-events: none;
+}
+
+/* Outer wrapper: ONLY handles position, so the slide uses transform: translate */
+.tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cell);
+  height: var(--cell);
+  transform: translate(
+    calc(var(--col) * (var(--cell) + var(--gap))),
+    calc(var(--row) * (var(--cell) + var(--gap)))
+  );
+  transition: transform var(--slide) ease-in-out;
+  z-index: 2;
+}
+.tile-gone { z-index: 1; } /* consumed tile slides underneath the survivor */
+
+/* Inner element: look + scale keyframes (kept separate so they never fight the translate) */
+.tile-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: calc(var(--cell) * 0.46);
+  color: var(--ink);
+  background: #eee4da;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.digits-3 { font-size: calc(var(--cell) * 0.38); }
+.digits-4 { font-size: calc(var(--cell) * 0.31); }
+.digits-5, .digits-6, .digits-7 { font-size: calc(var(--cell) * 0.25); }
+
+/* ===== Animations ===== */
+/* New tile pops in after the slide finishes */
+.is-new {
+  animation: pop 180ms ease-out var(--slide) backwards;
+}
+@keyframes pop {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Merged tile bounces once the two tiles meet */
+.is-merged {
+  animation: pulse 200ms ease-in-out var(--slide) backwards;
+  z-index: 3;
+}
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ===== Tile colors: 2 .. 2048+ ===== */
+.tile-2    { background: #eee4da; color: #776e65; }
+.tile-4    { background: #ede0c8; color: #776e65; }
+.tile-8    { background: #f2b179; color: var(--ink-light); }
+.tile-16   { background: #f59563; color: var(--ink-light); }
+.tile-32   { background: #f67c5f; color: var(--ink-light); }
+.tile-64   { background: #f65e3b; color: var(--ink-light); }
+.tile-128  { background: #edcf72; color: var(--ink-light); box-shadow: 0 0 20px 4px rgba(243, 215, 116, 0.35); }
+.tile-256  { background: #edcc61; color: var(--ink-light); box-shadow: 0 0 22px 6px rgba(243, 215, 116, 0.45); }
+.tile-512  { background: #edc850; color: var(--ink-light); box-shadow: 0 0 24px 8px rgba(243, 215, 116, 0.55); }
+.tile-1024 { background: #edc53f; color: var(--ink-light); box-shadow: 0 0 26px 10px rgba(243, 215, 116, 0.65); }
+.tile-2048 { background: #edc22e; color: var(--ink-light); box-shadow: 0 0 30px 12px rgba(243, 215, 116, 0.8); }
+.tile-super { background: #3c3a32; color: var(--ink-light); }
+
+/* ===== Game over / win overlay ===== */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: 14px;
+  background: rgba(250, 248, 239, 0.8);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  animation: fade-in 400ms ease-out;
+}
+.overlay h2 { margin: 0; font-size: clamp(1.8rem, 8vw, 2.6rem); }
+.overlay p { margin: 0 0 8px; font-size: 1.1rem; }
+.overlay-actions { display: flex; gap: 10px; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== Small screens & motion preferences ===== */
+@media (max-width: 420px) {
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .hint { text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile { transition-duration: 1ms; }
+  .is-new, .is-merged, .overlay { animation-duration: 1ms; }
+}
