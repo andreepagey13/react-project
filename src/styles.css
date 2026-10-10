@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* ===== Design tokens: become utilities like bg-board, text-ink, bg-tile-8 ===== */
+@theme {
+  --font-sans: "Clear Sans", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+
+  --color-page: #faf8ef;
+  --color-board: #bbada0;
+  --color-cell: rgba(238, 228, 218, 0.35);
+  --color-ink: #776e65;
+  --color-ink-light: #f9f6f2;
+  --color-accent: #8f7a66;
+  --color-accent-hover: #9f8a76;
+  --color-overlay: rgba(250, 248, 239, 0.8);
+
+  --color-tile-2: #eee4da;
+  --color-tile-4: #ede0c8;
+  --color-tile-8: #f2b179;
+  --color-tile-16: #f59563;
+  --color-tile-32: #f67c5f;
+  --color-tile-64: #f65e3b;
+  --color-tile-128: #edcf72;
+  --color-tile-256: #edcc61;
+  --color-tile-512: #edc850;
+  --color-tile-1024: #edc53f;
+  --color-tile-2048: #edc22e;
+  --color-tile-super: #3c3a32;
+
+  /* Custom animations -> animate-pop, animate-merge, animate-fade-in */
+  --animate-pop: pop 180ms ease-out var(--slide) backwards;
+  --animate-merge: merge 200ms ease-in-out var(--slide) backwards;
+  --animate-fade-in: fade-in 400ms ease-out;
+
+  @keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes merge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+/* Layout variables shared by the board, grid and tiles */
+@layer base {
+  :root {
+    --slide: 120ms; /* must match SLIDE_MS in 2048.jsx */
+    --board: min(92vw, 460px);
+    --gap: calc(var(--board) / 36);
+    --cell: calc((var(--board) - var(--gap) * 5) / 4);
+  }
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+  }
+}
